@@ -380,11 +380,13 @@ ${formattingInstruction}`;
 const TabItem: React.FC<{ active: boolean; onClick: () => void; icon: React.ReactNode; label: string }> = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
-    className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all border-b-2 ${
+    className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 text-[8px] sm:text-xs font-bold transition-all border-b-2 ${
       active ? 'border-primary text-primary bg-white shadow-sm' : 'border-transparent text-neutral-400 hover:text-neutral-600'
     }`}
   >
-    {icon}
-    <span className="hidden sm:inline uppercase tracking-tighter">{label}</span>
+    <div className={active ? 'scale-110 transition-transform' : ''}>
+      {icon}
+    </div>
+    <span className="uppercase tracking-tighter truncate w-full px-0.5">{label}</span>
   </button>
 );
