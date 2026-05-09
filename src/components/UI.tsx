@@ -75,8 +75,8 @@ export const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: stri
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="px-6 py-4 border-bottom border-neutral-100 flex items-center justify-between">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
           <h3 className="text-xl font-serif">{title}</h3>
           <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,9 @@ export const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: stri
             </svg>
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto custom-scrollbar">
+          {children}
+        </div>
       </div>
     </div>
   );
