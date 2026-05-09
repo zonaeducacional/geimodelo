@@ -61,6 +61,32 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
+// Endpoint de Sincronização (Cloud Sync)
+app.post('/api/sync', (req, res) => {
+  const { email, data } = req.body;
+  if (!email || !data) return res.status(400).json({ error: 'Dados incompletos.' });
+
+  const syncFolder = path.join(__dirname, 'uploads', 'sync');
+  if (!fs.existsSync(syncFolder)) fs.mkdirSync(syncFolder, { recursive: true });
+
+  const filePath = path.join(syncFolder, `${email.replace(/[^a-z0-9]/gi, '_')}.json`);
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+
+  res.json({ message: 'Dados sincronizados com sucesso!' });
+});
+
+app.get('/api/sync/:email', (req, res) => {
+  const { email } = req.params;
+  const filePath = path.join(__dirname, 'uploads', 'sync', `${email.replace(/[^a-z0-9]/gi, '_')}.json`);
+
+  if (fs.existsSync(filePath)) {
+    const data = fs.readFileSync(filePath, 'utf8');
+    res.json(JSON.parse(data));
+  } else {
+    res.status(404).json({ error: 'Nenhum dado encontrado para este usuário.' });
+  }
+});
+
 app.get('/api/health', (req, res) => res.json({ status: 'rodando', vps: true }));
 
 app.listen(PORT, () => {

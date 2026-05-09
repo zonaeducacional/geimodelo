@@ -74,6 +74,30 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Efeito para sincronizar automaticamente quando os dados mudarem
+  useEffect(() => {
+    if (user && (students.length > 0 || classes.length > 0)) {
+      const timeout = setTimeout(() => syncData(), 2000); // Debounce de 2s
+      return () => clearTimeout(timeout);
+    }
+  }, [students, classes, attendance, grades, user]);
+
+  const syncData = async () => {
+    if (!user?.email) return;
+    try {
+      await fetch(`${API_URL}/api/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: user.email, 
+          data: { students, classes, attendance, grades } 
+        })
+      });
+    } catch (e) {
+      console.error('Erro na sincronização:', e);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       localStorage.setItem('gei-user', JSON.stringify(user));
@@ -96,6 +120,21 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (response.ok) {
         const loggedUser = { ...resData.user };
         
+        // Tenta baixar dados sincronizados do servidor
+        try {
+          const syncRes = await fetch(`${API_URL}/api/sync/${loggedUser.email}`);
+          if (syncRes.ok) {
+            const syncData = await syncRes.json();
+            // Restaura dados no Dexie (Simplificado para o demo)
+            if (syncData.classes) {
+              await localDb.classes.bulkPut(syncData.classes);
+              await localDb.students.bulkPut(syncData.students || []);
+              await localDb.attendance.bulkPut(syncData.attendance || []);
+              await localDb.grades.bulkPut(syncData.grades || []);
+            }
+          }
+        } catch (e) { console.error('Erro ao baixar sync'); }
+
         // Memória Permanente: Verifica se existe um avatar salvo para este e-mail
         const savedAvatar = localStorage.getItem(`gei_avatar_${loggedUser.email}`);
         if (savedAvatar) {
