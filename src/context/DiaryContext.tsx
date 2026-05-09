@@ -170,10 +170,32 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     toast.success('Configurações salvas!');
   };
 
-  const updateUser = (updates: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...updates });
-      toast.success('Perfil atualizado!');
+  const updateUser = async (updates: Partial<User>) => {
+    try {
+      // Se houver um novo avatar em base64, enviamos para o servidor real no VPS
+      if (updates.avatarUrl && updates.avatarUrl.startsWith('data:image')) {
+        const response = await fetch(`${API_URL}/api/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            image: updates.avatarUrl,
+            type: updates.role === 'super_admin' ? 'logo' : 'profile'
+          })
+        });
+        
+        if (response.ok) {
+          const resData = await response.json();
+          updates.avatarUrl = resData.url;
+        }
+      }
+
+      if (user) {
+        setUser({ ...user, ...updates });
+        toast.success('Perfil atualizado e otimizado!');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      toast.error('Erro ao salvar imagem no servidor.');
     }
   };
 
