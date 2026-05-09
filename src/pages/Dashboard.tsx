@@ -167,8 +167,8 @@ export const Dashboard: React.FC<{ onSelectClass: (id: string) => void }> = ({ o
             />
           </div>
 
-          {/* Only show password change if they logged in with email (provider is password) */}
-          {user?.providerData[0]?.providerId === 'password' && (
+          {/* Only show password change if they logged in with email */}
+          {user?.email && (
             <div className="pt-4 border-t border-neutral-100 mt-4">
               <label className="block text-sm font-medium mb-1 text-neutral-700">Nova Senha (opcional)</label>
               <Input 
@@ -183,7 +183,7 @@ export const Dashboard: React.FC<{ onSelectClass: (id: string) => void }> = ({ o
           )}
 
           {/* Temporary button to become super admin for testing */}
-          {user?.email === 'zonaeducacional@gmail.com' && (
+          {user?.role !== 'super_admin' && (
             <div className="pt-4 border-t border-neutral-100 mt-4">
               <Button 
                 type="button" 

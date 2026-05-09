@@ -10,7 +10,7 @@ export const Navbar: React.FC<{
   const { user, logout, data, updateUser } = useDiary();
   const [isProfileOpen, setIsProfileOpen] = React.useState(false);
   const [tempName, setTempName] = React.useState(user?.name || '');
-  const [tempAvatar, setTempAvatar] = React.useState(user?.avatarUrl || '');
+  const [tempAvatar, setTempAvatar] = React.useState(user?.avatarUrl || user?.photoURL || '');
 
   if (!user) return null;
 
@@ -77,8 +77,8 @@ export const Navbar: React.FC<{
             onClick={() => setIsProfileOpen(true)}
             className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20 overflow-hidden hover:ring-4 hover:ring-primary/10 transition-all"
           >
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="Perfil" className="w-full h-full object-cover" />
+            {(user?.avatarUrl || user?.photoURL) ? (
+              <img src={user.avatarUrl || user.photoURL} alt="Perfil" className="w-full h-full object-cover" />
             ) : (
               <User size={20} />
             )}
