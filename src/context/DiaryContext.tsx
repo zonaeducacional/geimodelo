@@ -74,13 +74,39 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Efeito para sincronizar automaticamente quando os dados mudarem
+  // Efeito para sincronizar automaticamente quando os dados mudarem (Upload)
   useEffect(() => {
     if (user && (students.length > 0 || classes.length > 0)) {
       const timeout = setTimeout(() => syncData(), 2000); // Debounce de 2s
       return () => clearTimeout(timeout);
     }
   }, [students, classes, attendance, grades, user]);
+
+  // Efeito para buscar atualizações do servidor periodicamente (Download)
+  useEffect(() => {
+    if (user?.email) {
+      const interval = setInterval(() => downloadSync(), 30000); // Checa a cada 30s
+      downloadSync(); // Checa ao abrir o app
+      return () => clearInterval(interval);
+    }
+  }, [user?.email]);
+
+  const downloadSync = async () => {
+    if (!user?.email) return;
+    try {
+      const syncRes = await fetch(`${API_URL}/api/sync/${user.email}`);
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        // Restaura dados no Dexie se houver algo novo
+        if (syncData.classes) {
+          await localDb.classes.bulkPut(syncData.classes);
+          await localDb.students.bulkPut(syncData.students || []);
+          await localDb.attendance.bulkPut(syncData.attendance || []);
+          await localDb.grades.bulkPut(syncData.grades || []);
+        }
+      }
+    } catch (e) { console.error('Erro no download sync'); }
+  };
 
   const syncData = async () => {
     if (!user?.email) return;
@@ -90,7 +116,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: user.email, 
-          data: { students, classes, attendance, grades } 
+          data: { students, classes, attendance, grades, lastSync: Date.now() } 
         })
       });
     } catch (e) {
