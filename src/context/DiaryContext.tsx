@@ -94,8 +94,16 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const resData = await response.json();
       
       if (response.ok) {
-        setUser(resData.user);
-        toast.success(resData.user.role === 'super_admin' ? 'Bem-vindo, Gestor!' : 'Login Realizado com Sucesso!'); 
+        const loggedUser = resData.user;
+        
+        // Memória Permanente: Verifica se existe um avatar salvo para este e-mail
+        const savedAvatar = localStorage.getItem(`gei_avatar_${loggedUser.email}`);
+        if (savedAvatar) {
+          loggedUser.avatarUrl = savedAvatar;
+        }
+        
+        setUser(loggedUser);
+        toast.success(loggedUser.role === 'super_admin' ? 'Bem-vindo, Gestor!' : 'Login Realizado com Sucesso!'); 
       } else {
         toast.error('Erro na autenticação.');
       }
@@ -186,6 +194,11 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (response.ok) {
           const resData = await response.json();
           updates.avatarUrl = resData.url;
+          
+          // Salva na Memória Permanente associada ao e-mail
+          if (user?.email) {
+            localStorage.setItem(`gei_avatar_${user.email}`, resData.url);
+          }
         }
       }
 
