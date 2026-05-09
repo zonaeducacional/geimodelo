@@ -76,7 +76,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Efeito para sincronizar automaticamente quando os dados mudarem (Upload)
   useEffect(() => {
-    if (user && (students.length > 0 || classes.length > 0)) {
+    if (user) {
       const timeout = setTimeout(() => syncData(), 2000); // Debounce de 2s
       return () => clearTimeout(timeout);
     }
