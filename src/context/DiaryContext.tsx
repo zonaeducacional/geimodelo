@@ -5,6 +5,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { localDb } from '../lib/db';
 import { useTheme } from './ThemeContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 interface User {
   uid: string;
   email: string;
@@ -82,17 +84,24 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Funções de Auth Mockadas (Pronto para o backend VPS)
   const loginWithEmail = async (email: string, password?: string) => { 
-    // Demo: se o email for admin, entra como super_admin
-    const isAdmin = email.includes('admin');
-    
-    setUser({ 
-      uid: isAdmin ? 'admin-001' : 'prof-001', 
-      email: email, 
-      name: isAdmin ? 'Gestor Municipal' : 'Prof. Sérgio',
-      providerData: [{ providerId: 'password' }]
-    }); 
-    
-    toast.success(isAdmin ? 'Bem-vindo, Gestor!' : 'Login Realizado com Sucesso!'); 
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const resData = await response.json();
+      
+      if (response.ok) {
+        setUser(resData.user);
+        toast.success(resData.user.role === 'super_admin' ? 'Bem-vindo, Gestor!' : 'Login Realizado com Sucesso!'); 
+      } else {
+        toast.error('Erro na autenticação.');
+      }
+    } catch (error) {
+      toast.error('Erro de conexão com o servidor.');
+    }
   };
 
   const login = async () => loginWithEmail('professor@gei.com');

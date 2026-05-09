@@ -37,8 +37,10 @@ Módulo nativo que gera prompts mestres otimizados para:
 
 ## 🛠️ Stack Técnica
 - **Frontend**: React + Vite + TailwindCSS (v4).
+- **Backend**: Node.js + Express (API REST).
+- **Processamento de Imagem**: Sharp (Conversão Automática para WebP).
 - **Banco Local**: Dexie.js (Offline-First).
-- **Containerização**: Docker + Nginx.
+- **Containerização**: Docker (Frontend, Backend, PostgreSQL).
 - **Ícones**: Lucide React.
 - **Animações**: Motion.
 
