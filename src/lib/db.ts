@@ -21,7 +21,8 @@ export class GEIDatabase extends Dexie {
   constructor() {
     super('GEI_Offline_Database');
 
-    this.version(2).stores({
+    this.version(3).stores({
+      schools: 'id, name, municipioId',
       students: 'id, uid, schoolId, classId',
       classes: 'id, uid, schoolId',
       attendance: 'id, uid, studentId, classId, date',

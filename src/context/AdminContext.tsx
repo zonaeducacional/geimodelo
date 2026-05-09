@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState } from 'react';
 import { School, Settings } from '../types';
 import { useDiary } from './DiaryContext';
 import { toast } from 'sonner';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { localDb } from '../lib/db';
 
 export interface StudentReport {
   id: string;
@@ -31,14 +33,26 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, data } = useDiary();
-  const [schools, setSchools] = useState<School[]>([
-    { id: '1', name: 'Escola Municipal Antônio Carlos', municipioId: 'central', createdAt: new Date().toISOString() }
-  ]);
+  const { user } = useDiary();
+  
+  // Usar LiveQuery para as escolas virem do banco local
+  const schools = useLiveQuery(() => localDb.schools.toArray()) || [];
   const [teachers, setTeachers] = useState<Settings[]>([]);
 
   const addSchool = async (name: string) => {
-    toast.success('Escola adicionada com sucesso (Offline)!');
+    try {
+      const newSchool: School = {
+        id: crypto.randomUUID(),
+        name,
+        createdAt: new Date().toISOString()
+      };
+      
+      await localDb.schools.add(newSchool);
+      toast.success(`Escola "${name}" adicionada com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao adicionar escola:', error);
+      toast.error('Erro ao salvar escola no banco local.');
+    }
   };
 
   const assignTeacherToSchool = async (teacherUid: string, schoolId: string) => {
@@ -50,7 +64,15 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const getSchoolReport = async (schoolId: string): Promise<SchoolReportData> => {
-    return { studentCount: 0, classCount: 0, students: [] };
+    // Simulação de dados para o relatório
+    return { 
+      studentCount: 150, 
+      classCount: 12, 
+      students: [
+        { id: '1', name: 'Alice Silva', registration: '2026001', totalClasses: 20, presences: 18, absences: 2, attendancePercentage: 90 },
+        { id: '2', name: 'Bruno Santos', registration: '2026002', totalClasses: 20, presences: 12, absences: 8, attendancePercentage: 60 },
+      ] 
+    };
   };
 
   return (

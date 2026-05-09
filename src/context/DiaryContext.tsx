@@ -103,6 +103,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           await localDb.students.bulkPut(syncData.students || []);
           await localDb.attendance.bulkPut(syncData.attendance || []);
           await localDb.grades.bulkPut(syncData.grades || []);
+          if (syncData.schools) await localDb.schools.bulkPut(syncData.schools);
         }
       }
     } catch (e) { console.error('Erro no download sync'); }
@@ -116,7 +117,14 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: user.email, 
-          data: { students, classes, attendance, grades, lastSync: Date.now() } 
+          data: { 
+            students, 
+            classes, 
+            attendance, 
+            grades, 
+            schools: await localDb.schools.toArray(),
+            lastSync: Date.now() 
+          } 
         })
       });
     } catch (e) {
@@ -157,6 +165,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               await localDb.students.bulkPut(syncData.students || []);
               await localDb.attendance.bulkPut(syncData.attendance || []);
               await localDb.grades.bulkPut(syncData.grades || []);
+              if (syncData.schools) await localDb.schools.bulkPut(syncData.schools);
             }
           }
         } catch (e) { console.error('Erro ao baixar sync'); }
