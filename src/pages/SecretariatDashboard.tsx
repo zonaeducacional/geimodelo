@@ -334,7 +334,18 @@ export const SecretariatDashboard: React.FC = () => {
               <h3 className="text-xl font-serif mb-2">{school.name}</h3>
               <div className="flex items-center justify-between text-sm text-neutral-500">
                 <span>{teachers.filter(t => t.schoolId === school.id).length} Professores</span>
-                <Button variant="outline" size="sm">Ver Unidade</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedSchoolId(school.id);
+                    setActiveTab('reports');
+                    // O useEffect ou a chamada direta pode carregar o relatório
+                    setTimeout(() => handleLoadReport(), 100); 
+                  }}
+                >
+                  Ver Unidade
+                </Button>
               </div>
             </Card>
           ))}
