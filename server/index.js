@@ -87,6 +87,28 @@ app.get('/api/sync/:email', (req, res) => {
   }
 });
 
+// Endpoint para a Secretaria listar todos os professores
+app.get('/api/admin/teachers', (req, res) => {
+  const syncFolder = path.join(__dirname, 'uploads', 'sync');
+  if (!fs.existsSync(syncFolder)) return res.json([]);
+
+  const files = fs.readdirSync(syncFolder);
+  const teachers = files.map(file => {
+    try {
+      const content = JSON.parse(fs.readFileSync(path.join(syncFolder, file), 'utf8'));
+      return {
+        uid: file.replace('.json', ''),
+        email: file.replace('_', '@').replace('.json', ''), // Reconstrução básica do email
+        teacherName: content.settings?.teacherName || 'Professor sem nome',
+        schoolId: content.settings?.schoolId,
+        lastSync: content.lastSync
+      };
+    } catch (e) { return null; }
+  }).filter(t => t !== null);
+
+  res.json(teachers);
+});
+
 app.get('/api/health', (req, res) => res.json({ status: 'rodando', vps: true }));
 
 app.listen(PORT, () => {

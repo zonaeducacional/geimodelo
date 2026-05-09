@@ -39,6 +39,23 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const schools = useLiveQuery(() => localDb.schools.toArray()) || [];
   const [teachers, setTeachers] = useState<Settings[]>([]);
 
+  // Buscar professores sincronizados no servidor
+  React.useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const res = await fetch('/api/admin/teachers');
+        if (res.ok) {
+          const data = await res.json();
+          setTeachers(data);
+        }
+      } catch (e) { console.error('Erro ao buscar professores'); }
+    };
+
+    fetchTeachers();
+    const interval = setInterval(fetchTeachers, 10000); // Atualiza a cada 10s
+    return () => clearInterval(interval);
+  }, []);
+
   const addSchool = async (name: string) => {
     try {
       const newSchool: School = {

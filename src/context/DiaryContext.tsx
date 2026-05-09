@@ -123,6 +123,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             attendance, 
             grades, 
             schools: await localDb.schools.toArray(),
+            settings: data.settings,
             lastSync: Date.now() 
           } 
         })
