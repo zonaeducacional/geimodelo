@@ -13,38 +13,31 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(helmet({ crossOriginResourcePolicy: false })); // Permite servir imagens
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configuração Multer (Memória para processar com Sharp)
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('Apenas imagens são permitidas!'));
-  }
-});
-
-// Endpoint de Upload com Otimização Automática (Sharp)
-app.post('/api/upload/:type', upload.single('image'), async (req, res) => {
+// Endpoint de Upload com Otimização Automática (Sharp + Base64)
+app.post('/api/upload', async (req, res) => {
   try {
-    const { type } = req.params; // 'profiles' ou 'logos'
-    if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+    const { image, type } = req.body; // image: base64, type: 'profiles' ou 'logos'
+    if (!image) return res.status(400).json({ error: 'Nenhuma imagem enviada.' });
 
-    const folder = path.join(__dirname, 'uploads', type);
+    const folderName = type === 'logo' ? 'logos' : 'profiles';
+    const folder = path.join(__dirname, 'uploads', folderName);
     if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
 
-    const filename = `${Date.now()}-${type}.webp`;
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const filename = `${Date.now()}-${folderName}.webp`;
     const outputPath = path.join(folder, filename);
 
     // Mágica do Sharp: Converte para WebP, redimensiona e otimiza
-    await sharp(req.file.buffer)
+    await sharp(buffer)
       .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 80 })
       .toFile(outputPath);
 
-    const publicUrl = `/uploads/${type}/${filename}`;
+    const publicUrl = `/api/uploads/${folderName}/${filename}`;
     res.json({ url: publicUrl, message: 'Imagem otimizada e salva com sucesso!' });
   } catch (error) {
     console.error('Erro no processamento Sharp:', error);
