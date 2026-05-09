@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { localDb } from '../lib/db';
 import { useTheme } from './ThemeContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = ''; // Usando rotas relativas para o Proxy do Nginx no VPS
 
 interface User {
   uid: string;
