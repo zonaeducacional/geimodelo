@@ -1,0 +1,5 @@
+{
+  "name": "Diário de Classe Premium",
+  "description": "Sistema de gestão pedagógica premium para professores, focado em turmas, frequências e planejamento. Agora instalável como PWA.",
+  "requestFramePermissions": []
+}

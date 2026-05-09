@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "A student in the system",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "registration": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "registration", "uid"]
+    },
+    "Class": {
+      "title": "Class",
+      "description": "A class taught by a teacher",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "subject": { "type": "string" },
+        "year": { "type": "string" },
+        "studentIds": { "type": "array", "items": { "type": "string" } },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "name", "subject", "year", "studentIds", "uid"]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "A record of student attendance for a lesson",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "classId": { "type": "string" },
+        "date": { "type": "string" },
+        "subject": { "type": "string" },
+        "lesson": { "type": "string" },
+        "presentStudentIds": { "type": "array", "items": { "type": "string" } },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "classId", "date", "subject", "lesson", "presentStudentIds", "uid"]
+    },
+    "GradeRecord": {
+      "title": "GradeRecord",
+      "description": "A grade record for a student",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "classId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "unit": { "type": "string", "enum": ["I Unidade", "II Unidade", "III Unidade"] },
+        "subject": { "type": "string" },
+        "assessment": { "type": "string", "enum": ["1ª Avaliação", "2ª Avaliação", "3ª Avaliação", "4ª Avaliação"] },
+        "activityName": { "type": "string" },
+        "grade": { "type": "number" },
+        "date": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "classId", "studentId", "unit", "subject", "assessment", "activityName", "grade", "date", "uid"]
+    },
+    "LessonPlan": {
+      "title": "LessonPlan",
+      "description": "A lesson plan for a class",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "classId": { "type": "string" },
+        "date": { "type": "string" },
+        "subject": { "type": "string" },
+        "content": { "type": "string" },
+        "observations": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "classId", "date", "subject", "content", "observations", "uid"]
+    },
+    "PlanningDocument": {
+      "title": "PlanningDocument",
+      "description": "A document attached to a class",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "classId": { "type": "string" },
+        "type": { "type": "string", "enum": ["aula", "projeto", "avaliacao", "outro"] },
+        "title": { "type": "string" },
+        "fileContent": { "type": "string" },
+        "date": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["id", "classId", "type", "title", "fileContent", "date", "uid"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Personalization settings for the teacher",
+      "type": "object",
+      "properties": {
+        "teacherName": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "schoolYear": { "type": "string" },
+        "uid": { "type": "string" },
+        "role": { "type": "string" },
+        "schoolId": { "type": "string" }
+      },
+      "required": ["teacherName", "schoolName", "schoolYear", "uid"]
+    },
+    "School": {
+      "title": "School",
+      "description": "A school in the educational network",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": { "schema": "Student", "description": "Students collection" },
+    "/classes/{classId}": { "schema": "Class", "description": "Classes collection" },
+    "/attendance/{attendanceId}": { "schema": "AttendanceRecord", "description": "Attendance records collection" },
+    "/grades/{gradeId}": { "schema": "GradeRecord", "description": "Grades collection" },
+    "/lessonPlans/{planId}": { "schema": "LessonPlan", "description": "Lesson plans collection" },
+    "/documents/{docId}": { "schema": "PlanningDocument", "description": "Documents collection" },
+    "/settings/{uid}": { "schema": "Settings", "description": "Teacher settings" },
+    "/schools/{schoolId}": { "schema": "School", "description": "Schools collection" }
+  }
+}

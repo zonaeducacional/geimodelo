@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Cores Padrão - "A Central" */
+  --theme-color-1: #3a3132;
+  --theme-color-2: #0f4571;
+  --theme-color-3: #386dbd;
+  --theme-color-4: #009ddd;
+  --theme-color-5: #05d3f8;
+
+  --theme-bg-paper: #f8fafc; /* Fundo claro profissional */
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+
+  /* Mapeamento Dinâmico para Tailwind (Classes como bg-brand-2, text-brand-1) */
+  --color-brand-1: var(--theme-color-1);
+  --color-brand-2: var(--theme-color-2);
+  --color-brand-3: var(--theme-color-3);
+  --color-brand-4: var(--theme-color-4);
+  --color-brand-5: var(--theme-color-5);
+
+  /* Retrocompatibilidade com as classes antigas do app */
+  --color-paper: var(--theme-bg-paper);
+  --color-primary: var(--theme-color-2);
+  --color-secondary: var(--theme-color-3);
+  --color-accent: var(--theme-color-4);
+  --color-ink: var(--theme-color-1);
+  --color-terracotta: var(--theme-color-2); /* Mantendo para não quebrar componentes */
+
+  /* Override neutral colors to use hex instead of oklch for html2canvas compatibility */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Override green and red colors to use hex instead of oklch for html2canvas compatibility */
+  --color-green-100: #dcfce7;
+  --color-green-700: #15803d;
+  --color-red-100: #fee2e2;
+  --color-red-700: #b91c1c;
+  --color-blue-100: #dbeafe;
+  --color-blue-700: #1d4ed8;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior-y: contain;
+    /* Handle safe area for notched devices */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Disable text selection on buttons and interactive elements for native feel */
+  button, a, .btn {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-neutral-200 rounded-full hover:bg-neutral-300 transition-colors;
+}
+

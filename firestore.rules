@@ -1,0 +1,185 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: students
+    // Fields: id, name, registration, uid
+    //
+    // Collection: classes
+    // Fields: id, name, subject, year, studentIds, uid
+    //
+    // Collection: attendance
+    // Fields: id, classId, date, lesson, presentStudentIds, uid
+    //
+    // Collection: grades
+    // Fields: id, classId, studentId, unit, subject, assessment, activityName, grade, date, uid
+    //
+    // Collection: lessonPlans
+    // Fields: id, classId, date, content, observations, uid
+    //
+    // Collection: documents
+    // Fields: id, classId, type, title, fileContent, date, uid
+    //
+    // Collection: settings
+    // Fields: teacherName, schoolName, schoolYear, uid
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/settings/$(request.auth.uid)).data.role == 'super_admin' ||
+          (request.auth.token.email == "zonaeducacional@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidStudent(data) {
+      return hasRequiredFields(['id', 'name', 'registration', 'uid']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.registration is string && data.registration.size() > 0 && data.registration.size() < 50;
+    }
+
+    function isValidClass(data) {
+      return hasRequiredFields(['id', 'name', 'subject', 'year', 'studentIds', 'uid']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 50 &&
+             data.subject is string && data.subject.size() > 0 && data.subject.size() < 50 &&
+             data.year is string && data.year.size() == 4 &&
+             data.studentIds is list;
+    }
+
+    function isValidAttendance(data) {
+      return hasRequiredFields(['id', 'classId', 'date', 'lesson', 'presentStudentIds', 'uid']) &&
+             data.classId is string && data.date is string && data.lesson is string &&
+             data.presentStudentIds is list;
+    }
+
+    function isValidGrade(data) {
+      return hasRequiredFields(['id', 'classId', 'studentId', 'unit', 'subject', 'assessment', 'activityName', 'grade', 'date', 'uid']) &&
+             data.grade is number && data.grade >= 0 && data.grade <= 10 &&
+             data.unit in ['I Unidade', 'II Unidade', 'III Unidade'] &&
+             data.assessment in ['1ª Avaliação', '2ª Avaliação', '3ª Avaliação', '4ª Avaliação'];
+    }
+
+    function isValidLessonPlan(data) {
+      return hasRequiredFields(['id', 'classId', 'date', 'content', 'observations', 'uid']) &&
+             data.content is string && data.content.size() < 10000;
+    }
+
+    function isValidDocument(data) {
+      return hasRequiredFields(['id', 'classId', 'type', 'title', 'fileContent', 'date', 'uid']) &&
+             data.type in ['aula', 'projeto', 'avaliacao', 'outro'] &&
+             data.fileContent is string && data.fileContent.size() < 1000000; // 1MB limit
+    }
+
+    function isValidSettings(data) {
+      return hasRequiredFields(['teacherName', 'schoolName', 'schoolYear', 'uid']) &&
+             data.teacherName is string && data.schoolName is string && data.schoolYear is string;
+    }
+
+    function isValidSchool(data) {
+      return hasRequiredFields(['id', 'name', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.createdAt is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /schools/{schoolId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidSchool(request.resource.data);
+      allow update: if isAdmin() && isValidSchool(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /students/{studentId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && isValidStudent(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidStudent(request.resource.data) && isDocOwner() && uidNotModified();
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /classes/{classId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && isValidClass(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidClass(request.resource.data) && isDocOwner() && uidNotModified();
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && isValidAttendance(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidAttendance(request.resource.data) && isDocOwner() && uidNotModified();
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /grades/{gradeId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && isValidGrade(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidGrade(request.resource.data) && isDocOwner() && uidNotModified();
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /lessonPlans/{planId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && isValidLessonPlan(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidLessonPlan(request.resource.data) && isDocOwner() && uidNotModified();
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /documents/{docId} {
+      allow read: if isAuthenticated() && (isDocOwner() || isAdmin());
+      allow create: if isAuthenticated() && isValidDocument(request.resource.data) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidDocument(request.resource.data) && isDocOwner() && uidNotModified();
+      allow delete: if isAuthenticated() && (isDocOwner() || isAdmin());
+    }
+
+    match /settings/{uid} {
+      allow read: if isAuthenticated() && (isOwner(uid) || isAdmin());
+      allow create: if isAuthenticated() && isValidSettings(request.resource.data) && isOwner(uid) && uidUnchanged();
+      allow update: if isAuthenticated() && isValidSettings(request.resource.data) && (isOwner(uid) || isAdmin()) && uidNotModified();
+      allow delete: if isAuthenticated() && (isOwner(uid) || isAdmin());
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

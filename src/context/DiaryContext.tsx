@@ -1,0 +1,186 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { DiaryData, Student, Class, AttendanceRecord, GradeRecord, LessonPlan, PlanningDocument, Settings } from '../types';
+import { toast } from 'sonner';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { localDb } from '../lib/db';
+import { useTheme } from './ThemeContext';
+
+interface User {
+  uid: string;
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+  providerData?: any[];
+}
+
+interface DiaryContextType {
+  data: DiaryData;
+  user: User | null;
+  isAuthReady: boolean;
+  login: () => Promise<void>;
+  loginWithEmail: (e: string, p: string) => Promise<void>;
+  registerWithEmail: (e: string, p: string) => Promise<void>;
+  resetPassword: (e: string) => Promise<void>;
+  updateUserPassword: (p: string) => Promise<void>;
+  logout: () => Promise<void>;
+  addStudent: (student: Omit<Student, 'id' | 'uid'>) => Promise<string>;
+  addClass: (newClass: Omit<Class, 'id' | 'uid'>) => Promise<void>;
+  addAttendance: (record: Omit<AttendanceRecord, 'id' | 'uid'>) => Promise<void>;
+  addGrade: (record: Omit<GradeRecord, 'id' | 'uid'>) => Promise<void>;
+  addLessonPlan: (plan: Omit<LessonPlan, 'id' | 'uid'>) => Promise<void>;
+  addDocument: (doc: Omit<PlanningDocument, 'id' | 'uid'>) => Promise<void>;
+  updateStudent: (student: Student) => Promise<void>;
+  updateClass: (cls: Class) => Promise<void>;
+  deleteClass: (id: string) => Promise<void>;
+  updateSettings: (settings: Omit<Settings, 'uid'>) => Promise<void>;
+  updateUser: (updates: Partial<User>) => void;
+  deleteDocument: (id: string) => Promise<void>;
+}
+
+const DiaryContext = createContext<DiaryContextType | undefined>(undefined);
+
+export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { theme } = useTheme();
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('gei-user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [isAuthReady, setIsAuthReady] = useState(true);
+  
+  // Dexie.js Live Queries (Offline First)
+  const students = useLiveQuery(() => localDb.students.toArray()) || [];
+  const classes = useLiveQuery(() => localDb.classes.toArray()) || [];
+  const attendance = useLiveQuery(() => localDb.attendance.toArray()) || [];
+  const grades = useLiveQuery(() => localDb.grades.toArray()) || [];
+  const lessonPlans = useLiveQuery(() => localDb.lessonPlans.toArray()) || [];
+  const documents = useLiveQuery(() => localDb.documents.toArray()) || [];
+
+  const data: DiaryData = {
+    students,
+    classes,
+    attendance,
+    grades,
+    lessonPlans,
+    documents,
+    settings: { 
+      teacherName: user?.name || 'Prof. Sérgio', 
+      schoolName: theme.municipioNome || 'A Central', 
+      schoolYear: '2026', 
+      uid: user?.uid || '',
+      role: user?.email?.includes('admin') ? 'super_admin' : 'teacher',
+      schoolId: '1'
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('gei-user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('gei-user');
+    }
+  }, [user]);
+
+  // Funções de Auth Mockadas (Pronto para o backend VPS)
+  const loginWithEmail = async (email: string, password?: string) => { 
+    // Demo: se o email for admin, entra como super_admin
+    const isAdmin = email.includes('admin');
+    
+    setUser({ 
+      uid: isAdmin ? 'admin-001' : 'prof-001', 
+      email: email, 
+      name: isAdmin ? 'Gestor Municipal' : 'Prof. Sérgio',
+      providerData: [{ providerId: 'password' }]
+    }); 
+    
+    toast.success(isAdmin ? 'Bem-vindo, Gestor!' : 'Login Realizado com Sucesso!'); 
+  };
+
+  const login = async () => loginWithEmail('professor@gei.com');
+  const registerWithEmail = async (e: string) => loginWithEmail(e);
+  const resetPassword = async () => { toast.success('Link enviado!'); };
+  const updateUserPassword = async () => { toast.success('Senha atualizada!'); };
+  const logout = async () => { setUser(null); toast.info('Sessão encerrada.'); };
+
+  // Funções de Banco de Dados (DEXIE JS)
+  const addClass = async (newClass: Omit<Class, 'id' | 'uid'>) => {
+    const id = crypto.randomUUID();
+    await localDb.classes.put({ ...newClass, id, uid: '123', schoolId: '1' });
+    toast.success('Turma criada localmente!');
+  };
+
+  const addStudent = async (student: Omit<Student, 'id' | 'uid'>) => {
+    const id = crypto.randomUUID();
+    await localDb.students.put({ ...student, id, uid: '123', schoolId: '1' });
+    toast.success('Aluno salvo offline!');
+    return id;
+  };
+
+  const addAttendance = async (record: Omit<AttendanceRecord, 'id' | 'uid'>) => {
+    const id = crypto.randomUUID();
+    await localDb.attendance.put({ ...record, id, uid: '123', schoolId: '1' });
+    toast.success('Chamada registrada (Offline)!');
+  };
+
+  const addGrade = async (record: Omit<GradeRecord, 'id' | 'uid'>) => {
+    const id = crypto.randomUUID();
+    await localDb.grades.put({ ...record, id, uid: '123', schoolId: '1' });
+    toast.success('Nota lançada no banco local!');
+  };
+
+  const addLessonPlan = async (plan: Omit<LessonPlan, 'id' | 'uid'>) => {
+    const id = crypto.randomUUID();
+    await localDb.lessonPlans.put({ ...plan, id, uid: '123', schoolId: '1' });
+    toast.success('Plano salvo!');
+  };
+
+  const addDocument = async (docData: Omit<PlanningDocument, 'id' | 'uid'>) => {
+    const id = crypto.randomUUID();
+    await localDb.documents.put({ ...docData, id, uid: '123', schoolId: '1' });
+    toast.success('Documento guardado localmente!');
+  };
+
+  const updateStudent = async (student: Student) => {
+    await localDb.students.put(student);
+  };
+
+  const updateClass = async (cls: Class) => {
+    await localDb.classes.put(cls);
+  };
+
+  const deleteClass = async (id: string) => {
+    await localDb.classes.delete(id);
+    toast.error('Turma apagada localmente.');
+  };
+
+  const deleteDocument = async (id: string) => {
+    await localDb.documents.delete(id);
+  };
+
+  const updateSettings = async (newSettings: Omit<Settings, 'uid'>) => {
+    // No futuro persistirá no VPS
+    toast.success('Configurações salvas!');
+  };
+
+  const updateUser = (updates: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...updates });
+      toast.success('Perfil atualizado!');
+    }
+  };
+
+  return (
+    <DiaryContext.Provider value={{
+      data, user, isAuthReady, login, loginWithEmail, registerWithEmail, resetPassword, updateUserPassword, logout,
+      addStudent, addClass, addAttendance, addGrade, addLessonPlan, addDocument,
+      updateStudent, updateClass, deleteClass, updateSettings, deleteDocument, updateUser
+    }}>
+      {children}
+    </DiaryContext.Provider>
+  );
+};
+
+export const useDiary = () => {
+  const context = useContext(DiaryContext);
+  if (!context) throw new Error('useDiary must be used within a DiaryProvider');
+  return context;
+};
