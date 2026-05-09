@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  gei-frontend:
+    build: .
+    container_name: gei-app
+    ports:
+      - "3000:80"
+    restart: always
+    networks:
+      - gei-network
+
+networks:
+  gei-network:
+    driver: bridge

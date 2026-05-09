@@ -30,22 +30,37 @@ Módulo nativo que gera prompts mestres otimizados para:
 - **Exportação Excel**: Relatórios formatados para assistência social.
 - **Gestão Multi-Escolar**: Visão consolidada de todo o município.
 
+### 🎨 White-Label & SaaS Ready
+- **Customização Dinâmica**: Logos, cores e nome do município configuráveis via Painel da Secretaria.
+- **Persistência Local**: Branding e dados do usuário salvos no `localStorage` e `IndexedDB`.
+- **Multi-Tenancy**: Estrutura preparada para isolamento de dados por prefeitura.
+
 ## 🛠️ Stack Técnica
 - **Frontend**: React + Vite + TailwindCSS (v4).
-- **Banco Local**: Dexie.js.
+- **Banco Local**: Dexie.js (Offline-First).
+- **Containerização**: Docker + Nginx.
 - **Ícones**: Lucide React.
-- **Animações**: Motion (Framer Motion).
-- **Mock Backend**: Context API (Preparado para integração real).
+- **Animações**: Motion.
 
-## 🏃 Como Rodar
+## 🚀 Deploy no VPS (Hostinger)
+Este projeto está pronto para rodar atrás de um **Nginx Proxy Manager**.
+
+1. **Via Docker Compose**:
+   ```bash
+   git pull origin main
+   docker-compose up -d --build
+   ```
+2. **Configuração NPM**: Apontar o domínio (ex: gei.seudominio.com) para a porta `3000` do VPS.
+
+## 🏃 Como Rodar Localmente
 1. `npm install`
 2. `npm run dev`
 
 ## 📋 Changelog Recente
-- [v1.2] Migração para Dexie.js (Offline-First).
-- [v1.3] Implementação do AIPlanner Nativo.
-- [v1.4] Módulo PEI (Inclusão) e Materiais de Apoio.
-- [v1.5] Atualização do Manual do Usuário e Branding Automático.
+- **[v2.0]** Modernização SaaS: Sistema White-Label dinâmico e Login Duplo (Professor/Secretaria).
+- **[v2.1]** Persistência de Branding e Perfil no LocalStorage.
+- **[v2.2]** Implementação de Upload de Arquivos Local (Avatar/Logo).
+- **[v2.3]** Preparação para Deploy VPS com Docker/Nginx.
 
 ---
-Desenvolvido com ❤️ por **Antigravity** para **Sérgio**. 🇧🇷
+Desenvolvido com ❤️ por **Antigravity** para o **Sérgio**. 🇧🇷🚀
