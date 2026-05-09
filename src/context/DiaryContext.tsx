@@ -94,7 +94,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const resData = await response.json();
       
       if (response.ok) {
-        const loggedUser = resData.user;
+        const loggedUser = { ...resData.user };
         
         // Memória Permanente: Verifica se existe um avatar salvo para este e-mail
         const savedAvatar = localStorage.getItem(`gei_avatar_${loggedUser.email}`);
@@ -103,6 +103,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         
         setUser(loggedUser);
+        localStorage.setItem('gei-user', JSON.stringify(loggedUser));
         toast.success(loggedUser.role === 'super_admin' ? 'Bem-vindo, Gestor!' : 'Login Realizado com Sucesso!'); 
       } else {
         toast.error('Erro na autenticação.');
@@ -116,7 +117,11 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const registerWithEmail = async (e: string) => loginWithEmail(e);
   const resetPassword = async () => { toast.success('Link enviado!'); };
   const updateUserPassword = async () => { toast.success('Senha atualizada!'); };
-  const logout = async () => { setUser(null); toast.info('Sessão encerrada.'); };
+  const logout = async () => { 
+    setUser(null); 
+    localStorage.removeItem('gei-user');
+    toast.info('Sessão encerrada.'); 
+  };
 
   // Funções de Banco de Dados (DEXIE JS)
   const addClass = async (newClass: Omit<Class, 'id' | 'uid'>) => {
@@ -203,7 +208,9 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       if (user) {
-        setUser({ ...user, ...updates });
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        localStorage.setItem('gei-user', JSON.stringify(updatedUser));
         toast.success('Perfil atualizado e otimizado!');
       }
     } catch (error) {
